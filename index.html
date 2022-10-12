@@ -22,6 +22,11 @@
 				stroke: black;
 				shape-rendering: crispEdges;
 			}
+			.sexAxis path, .sexAxis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
 			.tick text {
 				fill: black;
 				font-size: 11px;
@@ -39,11 +44,11 @@
 	<body>
 
 		<svg id="map" width="49%" height="50%" viewBox="0 0 500 500">
-			<text id='Maplabel' x='20' y='20'>Street Map</text>
+			<text id='Maplabel' x='20' y='20'>London Street Map</text>
 			<!--<g transform="translate(100,100)"></g>-->
 		</svg>
 		<svg id="barchart" width="49%" height="50%" viewBox="0 0 500 500">
-			<text id='barlabel' x='20' y='20'>Overall Death Distribution</text>
+			<text id='barlabel' x='80' y='20'>Overall Death Distribution</text>
 		</svg>
 		<svg id="linechart" width="100%" height="40%" viewBox="150 0 600 600">
 			<text id="LClabel" x="20" y="20">Interactive Deaths per Day</text>
@@ -52,7 +57,7 @@
 		<script>
 
 
-			// All inspired and bassed off of KReda class examples, sample2.html and energy.html
+			// All below inspired and based off of KReda class examples, sample2.html and energy.html
 			// Along with guidance and help from Amey
 			var svgMargin = {top:5, bottom:5, left:5, right:5};			
 			var width = (window.innerWidth) - svgMargin.left - svgMargin.right;
@@ -71,8 +76,10 @@
 
 			var Bar_CWidth = 75;
 			var Bar_CHeight = 250;
-			var barTransDown = 50;
-			var barTransRight= 50;
+			var barTransDown = 125;
+			var barTransRight= 125;
+
+			var legendSep = 50;
 
 			var deathDays = [];
 
@@ -158,6 +165,18 @@
 			    			.style('stroke', 'black')
 			    			.style('stroke-width', '1px')
 			    			.attr('d', pathGenerator);
+
+
+
+			    		//-----------
+			    		// Zoom
+			    		//-----------
+			    		// https://coderwall.com/p/psogia/
+			    		//simplest-way-to-add-zoom-pan-on-d3-js
+			    		gMap.call(d3.behavior.zoom().on("zoom", function () {
+    						gMap.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+  						}));
+
 					};
 
 
@@ -222,7 +241,10 @@
 
 
 				};
-//WORKING ON THIS SECTION BELOW
+
+				//------------------
+				// Bar Chart Section
+				//------------------
 				// Use of https://bl.ocks.org/d3noob/8952219 for bar chart design
 				// and https://stackoverflow.com/questions/21639305/
 				//d3js-take-data-from-an-array-instead-of-a-file
@@ -275,29 +297,20 @@
 										.ticks(5);
 
 
-
-					// var xBarScale = d3.scale.ordinal()
-					// 	.domain("Female", "Male")	
-					// 	.rangeRoundBands([0, Bar_CWidth]);			
-
-					// var yBarScale = d3.scale.linear()
-					// 				.domain([0, maxGender])
-					// 				.range([Bar_CHeight,0]);	
-
 					gBar.append("g")
-						.attr("class", "axis")
+						.attr("class", "sexAxis")
 						.attr("transform","translate("+(barTransRight)+"," +(Bar_CHeight+barTransDown)+")")
 						.call(xBarAxis);
 
 					gBar.append("g")
-						.attr("class", "axis")
+						.attr("class", "sexAxis")
 						.attr("transform","translate("+(barTransRight)+"," +(barTransDown)+")")
 						.call(yBarAxis);
 
-					gBar.selectAll("bar")
+					gBar.selectAll(".sexBars")
 						.data(genderValues)
 						.enter().append("rect")
-						.attr("class","bars")
+						.attr("class","sexBars")
 						.style("fill", function(d){return d.color;})
 						.attr("transform","translate("+(barTransRight)+"," +(barTransDown)+")")
 						.attr("x", function(d){return xBarScale(d.sex);})
@@ -306,22 +319,91 @@
 						.attr("height", function(d){
 									return Bar_CHeight-yBarScale(d.value);});
 						
-					gBar.selectAll(".bartext")
+					gBar.selectAll(".sexbartext")
 						.data(genderValues)
 						.enter().append("text")
-						.attr("class", "bartext")
+						.attr("class", "sexbartext")
 						.attr("fill", "black")
 						.attr("x", function(d,i){
 							return xBarScale(d.sex) ;})
 						.attr("y", function(d){return yBarScale(d.value);})
-						.attr("transform","translate("+(barTransRight+5)+"," +(barTransDown-2)+")")
+						.attr("transform","translate("+(barTransRight+4)+"," +(barTransDown-2)+")")
 						.text(function(d){return d.value;})
+						.style('font-family', 'Arial')
+						.style('font-size', "15px")
 						.style("text-anchor", "left");
 					console.log(genderValues);
+
+					gBar.selectAll('.sexaxistext')
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "sexaxistext")
+						.attr("x", (-225))
+						.attr("y", (90))
+						.attr('transform', 'rotate(-90)')
+						.attr('text-anchor', 'end')
+						.style('font-family', 'Arial')
+						.style('font-size', "15px")
+						.text("Deaths");
+
+					gBar.selectAll('.pumptext')
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "pumptext")
+						.attr("x", "15px")
+						.attr("y", (legendSep+5))
+						.style('font-family', 'Arial')
+						.style('font-size', "15px")
+						.text("Pumps");
+					gBar.selectAll('.pumpslegend')
+						.data(genderValues)
+						.enter().append("circle")
+						.attr("class", "pumpslegend")
+						.attr("cx", "7px")
+						.attr('cy', legendSep)
+						.attr('r', "5px")
+						.style('fill', 'yellow');
+
+					gBar.selectAll('.femalestext')
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "femalestext")
+						.attr("x", "15px")
+						.attr("y", ((legendSep)+20))
+						.style('font-family', 'Arial')
+						.style('font-size', "15px")
+						.text("Female");
+					gBar.selectAll('.femaleslegend')
+						.data(genderValues)
+						.enter().append("circle")
+						.attr("class", "femaleslegend")
+						.attr("cx", "7px")
+						.attr('cy', (legendSep+15))
+						.attr('r', "5px")
+						.style('fill', 'red');
+
+					gBar.selectAll('.malestext')
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "malestext")
+						.attr("x", "15px")
+						.attr("y", ((legendSep)+35))
+						.style('font-family', 'Arial')
+						.style('font-size', "15px")
+						.text("Male");
+					gBar.selectAll('.maleslegend')
+						.data(genderValues)
+						.enter().append("circle")
+						.attr("class", "maleslegend")
+						.attr("cx", "7px")
+						.attr('cy', (legendSep+30))
+						.attr('r', "5px")
+						.style('fill', 'blue');
+
 				};
 
 				drawPeople(peopleCirc);
-				console.log('working?');
+				//console.log('working?');
 				drawBarChart(peopleCirc);
 
 			});
@@ -379,6 +461,7 @@
 	    				.attr('y',0)
 	    				.attr('x',-10)
 	    				.attr('dy','.35em')
+	    				.style('font-size', "13px")
 	    				.attr('transform','rotate(-90)')
 	    				.style('text-anchor', 'end');
 
@@ -402,7 +485,7 @@
 					.style('stroke', 'black')
 					.attr('class', 'visDeath')
 					.attr('transform','translate(0,'+deathTrans+')')
-					.attr('r', '6px')
+					.attr('r', '8px')
 					.attr('cx', function(d) { return xScale(d.date)})
 					.attr('cy', function(d) { return yScale(d.deaths)})
 					.attr('id', function(d) { return 'dead_'+d.dCount; } );
@@ -415,8 +498,8 @@
 					.on('mouseover', function(d) 
 					{
 						d3.selectAll("#dead_" + d.id)
-							.style('fill', 'grey')
-							.attr('r', '10px')
+							.style('fill', 'steelblue')
+							.attr('r', '12px')
 
 						//var z = d.id
 
@@ -456,7 +539,7 @@
 					.on('mouseout', function(d) {
 						d3.selectAll("#dead_" + d.id)
 							.style('fill', 'grey')
-							.attr('r', '6px');
+							.attr('r', '8px');
 
 						// d3.selectAll("#ppl_" + d.id)
 						// 	.style('fill', null)
@@ -482,74 +565,22 @@
 
 			});
 
+			//---------
+			// Zoom
+			//---------
+			// https://www.d3indepth.com/zoom-and-pan/
+			
+			// let zoom = d3.zoom()
+			//   .on('zoom', handleZoom);
 
-// 			//----------------------
-// 			//People generator
-// 			//----------------------
-// 			d3.csv('http://127.0.0.1:8887/deaths_age_sex.csv', peopleConverter, function(data) 
-// 			{
-// 				peopleCirc = data;
-					
-// 				// console.log(deathDays);
-// 				// console.log(deathCount);
+			// function handleZoom(e) {
+			//   d3.select('svg#map')
+			//     .attr('transform', e.transform);
+			// }
 
-// //Function to create array of arrays based on deathCount. Array would be either range of all numbers
-// // up to the point of that timepoint. Or could be the completed "ppl_"+i id of dots
-
-// 				function drawPeople(data){
-
-// 					gMap.selectAll('.link')
-// 						.data(peopleCirc)
-// 						.enter().append('circle')
-// 						.attr('class','link')
-// 						.attr('r', '2px')
-// 						.attr('cx', function(d) { return xStreetsScale(d.x);})
-// 						.attr('cy', function(d) { return yStreetsScale(d.y);})
-// 						.attr('fill', function(d){ 
-// 							if (d.gender == 0){
-// 								return 'red';
-// 								}else{
-// 									return 'blue';
-// 								};
-// 							})
-// 						.attr('id', function(d, i) { return 'ppl_'+i; } );
-
-// 					//console.log(deathDays);
-
-// 				};
-
-// 				drawPeople(peopleCirc);
-
-// 			});
-
-
-			//-------------------------
-			//Pumps generator
-			//-------------------------
-			// d3.csv('http://127.0.0.1:8887/pumps.csv', pumpConverter, function (data){
-
-			// 	pumpCirc = data;
-
-			// 	console.log(pumpCirc);
-
-			// 	function drawPumps(data){
-
-			// 		gMap.selectAll('.pump')
-			// 			.data(pumpCirc)
-			// 			.enter().append('circle')
-			// 			.attr('class', 'pump')
-			// 			.attr('r', '5px')
-			// 			.attr('cx', function(d){ return xStreetsScale(d.x); })
-			// 			.attr('cy', function(d){ return yStreetsScale(d.y); })
-			// 			.attr('fill', 'yellow')
-			// 			// .attr('stroke-fill', 'black')
-			// 			// .attr('stroke-width', '2px');
-
-			// 	};
-
-			// 	drawPumps(pumpCirc);
-
-			// });
+			// function initZoom() {
+			//   d3.select('svg#map')
+			//     .call(zoom);}
 
 
 
