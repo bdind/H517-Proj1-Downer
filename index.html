@@ -2,17 +2,557 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<script src="https://d3js.org/d3.v3.min.js"></script>
-		<title>Project 1 - Brandon Downer</title>
+		<!-- <script src="https://d3js.org/d3.v3.min.js"></script> -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<title>London's 1854 Cholera Epidemic</title>
+		<style type="text/css">
+			
+			circle{
+				stroke: black;
+				stroke-width: 1px;
+				opacity: 1;
+			}
+
+	    	text { 
+				font-family: Arial; 
+				font-size: 15px;
+			}
+			.axis path, .axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			.tick text {
+				fill: black;
+				font-size: 11px;
+			}
+
+			.bar > text {
+				text-anchor: middle;
+			}
+
+
+		</style>
+
 	</head>
 
 	<body>
+
+		<svg id="map" width="49%" height="50%" viewBox="0 0 500 500">
+			<text id='Maplabel' x='20' y='20'>Street Map</text>
+			<!--<g transform="translate(100,100)"></g>-->
+		</svg>
+		<svg id="barchart" width="49%" height="50%" viewBox="0 0 500 500">
+			<text id='barlabel' x='20' y='20'>Overall Death Distribution</text>
+		</svg>
+		<svg id="linechart" width="100%" height="40%" viewBox="150 0 600 600">
+			<text id="LClabel" x="20" y="20">Interactive Deaths per Day</text>
+		</svg>
+
 		<script>
+
+
+			// All inspired and bassed off of KReda class examples, sample2.html and energy.html
+			// Along with guidance and help from Amey
+			var svgMargin = {top:5, bottom:5, left:5, right:5};			
+			var width = (window.innerWidth) - svgMargin.left - svgMargin.right;
+			var height = (window.innerHeight*0.40) - svgMargin.top - svgMargin.bottom;
+
+			var streets;
+			var peopleCirc;
+			var pumpCirc;
+			var gMap = d3.select('svg#map');
+			var gChart = d3.select('svg#linechart');
+			var gBar = d3.select('svg#barchart');
+
+			var CHART_WIDTH = width;
+			var CHART_HEIGHT = height;
+			var deathTrans = 100;
+
+			var Bar_CWidth = 75;
+			var Bar_CHeight = 250;
+			var barTransDown = 50;
+			var barTransRight= 50;
+
+			var deathDays = [];
+
+			var deathCount = 0;
+			var genderCountMale = 0;
+			var genderCountFemale = 0;
+
+			var xStreetsScale = d3.scale.linear().domain([3,20]).range([0,500]);
+
+			var yStreetsScale = d3.scale.linear().domain([3,20]).range([500,0]);
+
+
+
+			var deathDaysConverter = function(d,i) {
+				deathCount = deathCount + parseInt(d.deaths);
+				return{
+					date: d.date,
+					deaths: parseInt(d.deaths),
+					dCount: deathCount,
+					id: deathCount
+				};
+			};
+
+			//https://stackoverflow.com/questions/45044259/adding-a-column-to-csv-based-on-other-rows-with-d3
+			var peopleConverter = function(d, i) {
+				if (d.gender == 0){
+					genderCountMale = genderCountMale +1;
+					//return genderCountMale;
+				}else{
+					genderCountFemale = genderCountFemale +1;
+					//return genderCountFemale;
+				};
+				
+				//console.log(genderCountFemale);
+
+				return {
+					x: parseFloat(d.x),
+					y: parseFloat(d.y),
+					age: parseInt(d.age),
+					gender: parseInt(d.gender),
+					id: i,
+					male: genderCountMale,
+					female: genderCountFemale
+				};
+			};
+
+			var pumpConverter = function(d) {
+				return {
+					x: parseFloat(d.x),
+					y: parseFloat(d.y) 
+
+				};
+
+			};
+
+
+			//--------------------------
+			//Street map path generator
+			//--------------------------
+			//https://stackoverflow.com/questions/59227481/add-new-row-dynamically-to-an-array-with-headers-created-from-a-csv-file
+			//^ for logging of error during loading.
 			d3.json('http://127.0.0.1:8887/streets.json', function(error, data){
-				console.log(data[0])
-				console.log(data[1]);
+				
+				if (error) {
+					console.log(error);
+				} else {
+
+					streets = data;
+					//console.log(streets[0][0].x);
+					//drawStreets(streets);
+
+					function drawStreets(d) {
+
+						var pathGenerator = d3.svg.line()
+							.x(function(d) { return xStreetsScale(d.x); })
+							.y(function(d) { return yStreetsScale(d.y); }).interpolate('linear');
+
+
+						gMap.selectAll(".line") 
+		            		.data(d)
+		            		.enter().append("path")
+			    			.style('fill', 'none')
+			    			.style('stroke', 'black')
+			    			.style('stroke-width', '1px')
+			    			.attr('d', pathGenerator);
+					};
+
+
+				//-------------------------
+				//Pumps generator
+				//-------------------------
+				d3.csv('http://127.0.0.1:8887/pumps.csv', pumpConverter, function (data){
+
+					pumpCirc = data;
+
+					console.log(pumpCirc);
+
+					function drawPumps(data){
+
+						gMap.selectAll('.pump')
+							.data(pumpCirc)
+							.enter().append('circle')
+							.attr('class', 'pump')
+							.attr('r', '5px')
+							.attr('cx', function(d){ return xStreetsScale(d.x); })
+							.attr('cy', function(d){ return yStreetsScale(d.y); })
+							.attr('fill', 'yellow')
+							// .attr('stroke-fill', 'black')
+							// .attr('stroke-width', '2px');
+
+					};
+
+				drawPumps(pumpCirc);
+
 			});
-	
+
+			//----------------------
+			//People generator
+			//----------------------
+			d3.csv('http://127.0.0.1:8887/deaths_age_sex.csv', peopleConverter, function(data) 
+			{
+				peopleCirc = data;
+					
+				// console.log(deathDays);
+				// console.log(deathCount);
+
+
+				function drawPeople(data){
+
+					gMap.selectAll('.link')
+						.data(peopleCirc)
+						.enter().append('circle')
+						.attr('class','link')
+						.attr('r', '3px')
+						.attr('cx', function(d) { return xStreetsScale(d.x);})
+						.attr('cy', function(d) { return yStreetsScale(d.y);})
+						.attr('fill', function(d){ 
+							if (d.gender == 0){
+								return 'blue';
+								}else{
+									return 'red';
+								};
+							})
+						.attr('id', function(d, i) { return 'ppl_'+i; } );
+
+					//console.log(deathDays);
+
+
+				};
+//WORKING ON THIS SECTION BELOW
+				// Use of https://bl.ocks.org/d3noob/8952219 for bar chart design
+				// and https://stackoverflow.com/questions/21639305/
+				//d3js-take-data-from-an-array-instead-of-a-file
+				// and https://stackoverflow.com/questions/42736873/
+				//adding-label-text-on-barchart-d3js
+				function drawBarChart(data){
+
+					var male = 0;
+					var female = 0;
+					var maxGender = 0;
+					var genderNames = ["Female", "Male"];
+				
+					// function genderCount (data){
+					// 	if (data.gender == 0){return male=male+1;
+					// 	}else{return female=female+1;};
+					// 	};
+
+					var maleMax = d3.max(data,function(d){return d.male;});
+					var femaleMax = d3.max(data, function(d){return d.female;});
+					// var genderValues = [femaleMax, maleMax];
+					var genderValues = [{sex: "Female", value: femaleMax, color: "red"},
+										{sex: "Male", value: maleMax, color: "blue"}];
+
+					maxValue2 = d3.max([maleMax,femaleMax]);
+					for (y=0; (maxValue2+y)%100!=0; y++){maxGender = maxValue2+y+1;};
+
+					//genderCount(peopleCirc);
+
+					//console.log(maleMax);
+					//console.log(femaleMax);
+					// console.log(maxGender);
+					console.log(genderValues);
+
+					var xBarScale = d3.scale.ordinal()
+											.domain(genderValues.map(function(d) {return d.sex;}))
+											.rangeRoundBands([0,Bar_CWidth], 0.05);
+					//console.log(xBarScale.domain);
+
+					var yBarScale = d3.scale.linear()
+											.domain([0, maxGender])
+											.range([Bar_CHeight,0]);
+
+					var xBarAxis = d3.svg.axis()
+										.scale(xBarScale)
+										.orient("bottom");
+
+					var yBarAxis = d3.svg.axis()
+										.scale(yBarScale)
+										.orient("left")
+										.ticks(5);
+
+
+
+					// var xBarScale = d3.scale.ordinal()
+					// 	.domain("Female", "Male")	
+					// 	.rangeRoundBands([0, Bar_CWidth]);			
+
+					// var yBarScale = d3.scale.linear()
+					// 				.domain([0, maxGender])
+					// 				.range([Bar_CHeight,0]);	
+
+					gBar.append("g")
+						.attr("class", "axis")
+						.attr("transform","translate("+(barTransRight)+"," +(Bar_CHeight+barTransDown)+")")
+						.call(xBarAxis);
+
+					gBar.append("g")
+						.attr("class", "axis")
+						.attr("transform","translate("+(barTransRight)+"," +(barTransDown)+")")
+						.call(yBarAxis);
+
+					gBar.selectAll("bar")
+						.data(genderValues)
+						.enter().append("rect")
+						.attr("class","bars")
+						.style("fill", function(d){return d.color;})
+						.attr("transform","translate("+(barTransRight)+"," +(barTransDown)+")")
+						.attr("x", function(d){return xBarScale(d.sex);})
+						.attr("width", xBarScale.rangeBand())
+						.attr("y", function(d){return yBarScale(d.value);})
+						.attr("height", function(d){
+									return Bar_CHeight-yBarScale(d.value);});
+						
+					gBar.selectAll(".bartext")
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "bartext")
+						.attr("fill", "black")
+						.attr("x", function(d,i){
+							return xBarScale(d.sex) ;})
+						.attr("y", function(d){return yBarScale(d.value);})
+						.attr("transform","translate("+(barTransRight+5)+"," +(barTransDown-2)+")")
+						.text(function(d){return d.value;})
+						.style("text-anchor", "left");
+					console.log(genderValues);
+				};
+
+				drawPeople(peopleCirc);
+				console.log('working?');
+				drawBarChart(peopleCirc);
+
+			});
+
+
+					drawStreets(streets);
+
+				}});
+
+			//--------------------------
+			// Deaths per day line chart
+			//--------------------------
+			d3.csv('http://127.0.0.1:8887/deathdays.csv', deathDaysConverter, function(data) 
+			{
+				deathDays = data;
+				var maxValue = d3.max(deathDays, function(d) {
+					return d.deaths;
+				});
+				//console.log(maxValue);
+
+				//Determine the next number that divides evenly by 10 for y scale
+				maxValue1 = maxValue
+				for (y=0; (maxValue1+y)%10!=0; y++){maxValue = maxValue1+y+1;};
+				
+				//console.log(maxValue);
+
+				var xScale = d3.scale.ordinal()
+					.domain(deathDays.map(function(d) {return d.date;}))	
+					.rangeRoundBands([0, CHART_WIDTH]);			
+
+				var yScale = d3.scale.linear()
+								.domain([0, maxValue])
+								.range([CHART_HEIGHT,0]);	
+
+
+				var xAxis = d3.svg.axis()
+								.scale(xScale)
+								.orient('bottom');
+
+				var yAxis = d3.svg.axis()
+								.scale(yScale)
+								.orient('left')
+								.ticks(4);
+
+				var pathGenerator = d3.svg.line()
+					.x(function(d) { return xScale(d.date); })
+					.y(function(d) { return yScale(d.deaths); });
+
+
+	    		gChart.append('g')
+	    			.attr('class', 'axis')
+	    			.attr('transform', 'translate(0,' + (CHART_HEIGHT+deathTrans) + ')')
+	    			.call(xAxis)
+	    			.selectAll('text')
+	    				.attr('y',0)
+	    				.attr('x',-10)
+	    				.attr('dy','.35em')
+	    				.attr('transform','rotate(-90)')
+	    				.style('text-anchor', 'end');
+
+	    		gChart.append('g')
+	    			.attr('class', 'axis')
+	    			.attr('transform','translate(0,'+deathTrans+')')
+	    			.call(yAxis);
+
+	    		gChart.append('path')
+	    			.style('fill', 'none')
+	    			.style('stroke', 'steelblue')
+	    			.style('stroke-width', '3px')
+	    			.attr('transform','translate(0,'+deathTrans+')')
+	    			.attr('d', pathGenerator(deathDays));
+
+
+				gChart.selectAll('.visDeath')
+					.data(deathDays)
+					.enter().append('circle')
+					.style('fill', 'grey')
+					.style('stroke', 'black')
+					.attr('class', 'visDeath')
+					.attr('transform','translate(0,'+deathTrans+')')
+					.attr('r', '6px')
+					.attr('cx', function(d) { return xScale(d.date)})
+					.attr('cy', function(d) { return yScale(d.deaths)})
+					.attr('id', function(d) { return 'dead_'+d.dCount; } );
+
+					//******************
+					// Interaction below
+					//******************
+
+				gChart.selectAll('.visDeath')
+					.on('mouseover', function(d) 
+					{
+						d3.selectAll("#dead_" + d.id)
+							.style('fill', 'grey')
+							.attr('r', '10px')
+
+						//var z = d.id
+
+						//console.log(z);
+
+						// d3.selectAll("#ppl_" + d.id)
+						// 	.style('fill', function(d){if (d.gender==0){return'red';}else{return 'blue';}})
+						// 	.attr('r', '10px');
+
+						// var x = gMap.selectAll('.link')
+						//console.log(x);
+						for (y=0; y<(d.id); y++){
+							d3.selectAll('#ppl_'+y)
+							//x.selectAll('#ppl_'+y)
+							//.style('fill', function(d){if (d.gender==0){return'red';}else{return 'blue';}})
+							.attr('r', '7px');
+							
+							//console.log(y);
+
+							this.parentNode.appendChild(this);
+						};
+
+						for (y=(d.id); y<572; y++){
+							d3.selectAll('#ppl_'+y)
+							.style('opacity', 0);
+							
+							//console.log(y);
+						};
+
+//WHY ARE THE STREET PATHS STILL ON TOP OF EVERYTHING ELSE?
+
+						// move brushed circle so that it's on top
+						this.parentNode.appendChild(this);
+
+					})
+
+					.on('mouseout', function(d) {
+						d3.selectAll("#dead_" + d.id)
+							.style('fill', 'grey')
+							.attr('r', '6px');
+
+						// d3.selectAll("#ppl_" + d.id)
+						// 	.style('fill', null)
+						// 	.attr('r', '2px');
+
+						for (y=0; y<(d.id);y++){
+							d3.selectAll('#ppl_'+y)
+							//x.selectAll('#ppl_'+y)
+							.style('fill', function(d){if (d.gender==0){return'blue';}else{return 'red';}})
+							.attr('r', '2px');	
+						};
+
+						for (y=(d.id); y<572; y++){
+							d3.selectAll('#ppl_'+y)
+							.style('opacity', 1);
+							
+							//console.log(y);
+						};
+
+				 	});
+
+				//return deathDays;
+
+			});
+
+
+// 			//----------------------
+// 			//People generator
+// 			//----------------------
+// 			d3.csv('http://127.0.0.1:8887/deaths_age_sex.csv', peopleConverter, function(data) 
+// 			{
+// 				peopleCirc = data;
+					
+// 				// console.log(deathDays);
+// 				// console.log(deathCount);
+
+// //Function to create array of arrays based on deathCount. Array would be either range of all numbers
+// // up to the point of that timepoint. Or could be the completed "ppl_"+i id of dots
+
+// 				function drawPeople(data){
+
+// 					gMap.selectAll('.link')
+// 						.data(peopleCirc)
+// 						.enter().append('circle')
+// 						.attr('class','link')
+// 						.attr('r', '2px')
+// 						.attr('cx', function(d) { return xStreetsScale(d.x);})
+// 						.attr('cy', function(d) { return yStreetsScale(d.y);})
+// 						.attr('fill', function(d){ 
+// 							if (d.gender == 0){
+// 								return 'red';
+// 								}else{
+// 									return 'blue';
+// 								};
+// 							})
+// 						.attr('id', function(d, i) { return 'ppl_'+i; } );
+
+// 					//console.log(deathDays);
+
+// 				};
+
+// 				drawPeople(peopleCirc);
+
+// 			});
+
+
+			//-------------------------
+			//Pumps generator
+			//-------------------------
+			// d3.csv('http://127.0.0.1:8887/pumps.csv', pumpConverter, function (data){
+
+			// 	pumpCirc = data;
+
+			// 	console.log(pumpCirc);
+
+			// 	function drawPumps(data){
+
+			// 		gMap.selectAll('.pump')
+			// 			.data(pumpCirc)
+			// 			.enter().append('circle')
+			// 			.attr('class', 'pump')
+			// 			.attr('r', '5px')
+			// 			.attr('cx', function(d){ return xStreetsScale(d.x); })
+			// 			.attr('cy', function(d){ return yStreetsScale(d.y); })
+			// 			.attr('fill', 'yellow')
+			// 			// .attr('stroke-fill', 'black')
+			// 			// .attr('stroke-width', '2px');
+
+			// 	};
+
+			// 	drawPumps(pumpCirc);
+
+			// });
+
+
+
 
 		</script>
 	</body>
