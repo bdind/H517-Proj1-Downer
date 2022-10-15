@@ -189,7 +189,7 @@
 			//--------------------------
 			//https://stackoverflow.com/questions/59227481/add-new-row-dynamically-to-an-array-with-headers-created-from-a-csv-file
 			//^ for logging of error during loading.
-			d3.json('http://127.0.0.1:8887/streets.json', function(error, data){
+			d3.json('streets.json', function(error, data){
 				
 				if (error) {
 					console.log(error);
@@ -230,7 +230,7 @@
 				//-------------------------
 				//Pumps generator
 				//-------------------------
-				d3.csv('http://127.0.0.1:8887/pumps.csv', pumpConverter, function (data){
+				d3.csv('pumps.csv', pumpConverter, function (data){
 
 					pumpCirc = data;
 
@@ -258,7 +258,7 @@
 			//---------------------------------
 			//People generator and map objects
 			//---------------------------------
-			d3.csv('http://127.0.0.1:8887/deaths_age_sex.csv', peopleConverter, function(data) 
+			d3.csv('deaths_age_sex.csv', peopleConverter, function(data) 
 			{
 				peopleCirc = data;
 
@@ -717,7 +717,7 @@
 			//--------------------------
 			// Deaths per day line chart
 			//--------------------------
-			d3.csv('http://127.0.0.1:8887/deathdays.csv', deathDaysConverter, function(data) 
+			d3.csv('deathdays.csv', deathDaysConverter, function(data) 
 			{
 				deathDays = data;
 				var maxValue = d3.max(deathDays, function(d) {
