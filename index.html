@@ -2,8 +2,8 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<!-- <script src="https://d3js.org/d3.v3.min.js"></script> -->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<script src="https://d3js.org/d3.v3.min.js"></script>
+<!-- 		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script> -->
 		<title>London's 1854 Cholera Epidemic</title>
 		<style type="text/css">
 			
@@ -54,34 +54,56 @@
 		        border-radius: 6px;
 		        outline: none;
 		    }
+
+			/*https://www.w3schools.com/tags/tag_p.asp*/
+
+		    p {
+				  display: block;
+				  margin-top: 0em;
+				  margin-bottom: -1em;
+				  margin-left: 0;
+				  margin-right: 0;
+				  font-size: 175%;
+				  font-family: ariel;
+				}
 		</style>
 
 	</head>
 
 	<body>
 
-		<svg id="map" width="48%" height="48%" viewBox="0 0 500 500">
+		<p style="text-align: center;">Map of London 1854 Cholera Epidemic</p>
+		<!-- https://webdesign.tutsplus.com/tutorials/svg-viewport-and-viewbox-for-beginners--cms-30844 -->
+		<!-- https://stackoverflow.com/questions/8639383/how-do-i-center-an-svg-in-a-div -->
+		<div text-align="center">
+
+		<svg id="map" width="96%" height="48%" viewBox="0 0 500 500">
 			<!-- <text id='Maplabel' x='20' y='20'>London, Soho District</text> -->
 			<!--<g transform="translate(100,100)"></g>-->
 		</svg>
-		<svg id="barchart" width="48%" height="48%" viewBox="0 0 500 500">
+		</div>
+		<div text-align="center">
+		<svg id="legend" width="80%" height="5%" viewBox="0 0 400 65">
+		</svg>
+		</div>
+
+		<div text-align="center">
+		<svg id="barchart" width="41%" height="35%" viewBox="0 0 700 550">
 			<!-- <text id='barlabel' x='100' y='20'>Overall Death Distribution by Gender and Age</text> -->
 		</svg>
-		<svg id="linechart" width="100%" height="46%" viewBox="0 0 600 650">
+		<svg id="linechart" width="58%" height="35%" viewBox="0 0 700 550">
 			<!-- <text id="LClabel" x="20" y="20">Interactive Deaths per Day</text> -->
 		</svg>
-<!-- 		<svg id="pagelinks" width="10%" height="48%" viewBox="0 0 600 600">
-			
-		</svg> -->
+		</div>
 
 		<script>
 
 
-			// All below inspired and based off of KReda class examples, sample2.html and energy.html
-			// Along with guidance and help from Amey
+	// All below inspired and based off of KReda class examples, sample2.html and energy.html
+	// Also along with guidance and help from Amey
 			var svgMargin = {top:5, bottom:5, left:5, right:5};			
 			var width = (window.innerWidth) - svgMargin.left - svgMargin.right;
-			var height = (window.innerHeight*0.40) - svgMargin.top - svgMargin.bottom;
+			var height = (window.innerHeight*0.35) - svgMargin.top - svgMargin.bottom;
 
 			var streets;
 			var peopleCirc;
@@ -89,19 +111,33 @@
 			var gMap = d3.select('svg#map');
 			var gChart = d3.select('svg#linechart');
 			var gBar = d3.select('svg#barchart');
+			var gLegend = d3.select('svg#legend');
 
-			var CHART_WIDTH = 900;
-			var CHART_HEIGHT = 400;
+			var CHART_WIDTH = width;
+			var CHART_HEIGHT = height;
 			var deathTrans = 100;
 
-			var Bar_CWidth = 75;
-			var Bar_CWidthAge = 220;			
-			var Bar_CHeight = 250;
-			var barTransDown = 125;
-			var barTransRight= 110;
-			var ageBarTrans = 135;
+			var legendCircleStart = 400/9;
+			var legendSpaceStart = legendCircleStart+7;
+			var legendCircle = (400/5)+legendCircleStart;
+			var legendSpace = 7;
 
-			var legendSep = 50;
+			// var Bar_CWidth = 75;
+			var Bar_CWidth = 125;
+			// var Bar_CWidthAge = 220;			
+			// var Bar_CHeight = 250;
+			var Bar_CWidthAge = Bar_CWidth*3;			
+			var Bar_CHeight = height;
+			var barTransDown = 150;
+			var barTransRight= 110;
+			var ageBarTrans = 200;
+
+			// var DEATH_HEIGHT = 350;
+			// var DEATH_WIDTH = 600;
+			var DEATH_HEIGHT = height;
+			var DEATH_WIDTH = width*0.85;
+
+			var legendSep = 10;
 
 			var deathDays = [];
 
@@ -131,17 +167,17 @@
 				};
 			};
 
-			//https://stackoverflow.com/questions/45044259/adding-a-column-to-csv-based-on-other-rows-with-d3
+	//https://stackoverflow.com/questions/45044259/adding-a-column-to-csv-based-on-other-rows-with-d3
 			var peopleConverter = function(d, i) {
 				
-				// Cumulative count of gender
+			// Cumulative count of gender
 				if (d.gender == 0){
 					genderCountMale++;
 				}else{
 					genderCountFemale++;
 				};
 		
-				// Cumulative count of age ranges
+			// Cumulative count of age ranges
 				if (d.age == 0){
 					ageCount0++;
 				}else if (d.age == 1){
@@ -182,14 +218,20 @@
 
 			};
 
+			var zoom = d3.behavior.zoom()
+						.translate([0,0])
+						.scale(1)
+						.scaleExtent([1,3])
+						.center([300,300])
+						.on("zoom", zoomed);
 
 
-			//--------------------------
-			//Street map path generator
-			//--------------------------
-			//https://stackoverflow.com/questions/59227481/add-new-row-dynamically-to-an-array-with-headers-created-from-a-csv-file
-			//^ for logging of error during loading.
-			d3.json('streets.json', function(error, data){
+	//--------------------------
+	//Street map path generator
+	//--------------------------
+	//https://stackoverflow.com/questions/59227481/add-new-row-dynamically-to-an-array-with-headers-created-from-a-csv-file
+	//^ for logging of error during loading.
+			d3.json('http://127.0.0.1:8887/streets.json', function(error, data){
 				
 				if (error) {
 					console.log(error);
@@ -214,23 +256,26 @@
 			    			.style('stroke-width', '1px')
 			    			.attr('d', pathGenerator);
 
-			    		//-----------
-			    		// Zoom
-			    		//-----------
-			    		// https://coderwall.com/p/psogia/
-			    		//simplest-way-to-add-zoom-pan-on-d3-js
-			    		gMap.call(d3.behavior.zoom().on("zoom", function () {
-    						gMap.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
-  						}));
+		//-----------
+		// Zoom
+		//-----------
+		// https://coderwall.com/p/psogia/
+		//simplest-way-to-add-zoom-pan-on-d3-js
+    	// 	gMap.call(d3.behavior.zoom().on("zoom", function () {
+		// 		gMap.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+  						// }));
+
+  						gMap.call(zoom)
+  							.call(zoom.event);
 
 
 					};
 
 
-				//-------------------------
-				//Pumps generator
-				//-------------------------
-				d3.csv('pumps.csv', pumpConverter, function (data){
+	//-------------------------
+	//Pumps generator
+	//-------------------------
+				d3.csv('http://127.0.0.1:8887/pumps.csv', pumpConverter, function (data){
 
 					pumpCirc = data;
 
@@ -255,10 +300,10 @@
 
 			});
 
-			//---------------------------------
-			//People generator and map objects
-			//---------------------------------
-			d3.csv('deaths_age_sex.csv', peopleConverter, function(data) 
+	//---------------------------------
+	//People generator and map objects
+	//---------------------------------
+			d3.csv('http://127.0.0.1:8887/deaths_age_sex.csv', peopleConverter, function(data) 
 			{
 				peopleCirc = data;
 
@@ -280,10 +325,10 @@
 							})
 						.attr('id', function(d, i) { return 'ppl_'+i; } )
 
-						//------------------
-						// Interation below	
-						//------------------
-						//https://bl.ocks.org/d3noob/a22c42db65eb00d4e369									
+		//------------------
+		// Interation below	
+		//------------------
+		//https://bl.ocks.org/d3noob/a22c42db65eb00d4e369									
 						.on('mouseover', function(d) 
 						{	
 
@@ -337,53 +382,19 @@
 							d3.selectAll("#tooltip").remove();
 						});
 
-					//console.log(deathDays);
-
-					// Interation below
-					// gMap.selectAll('.link')
-					// 	.on('mouseover', function(d) 
-					// 	{					
-					// 	var xPosition = parseFloat(d3.select(this)
-					// 					.attr("x")) + 14;
-					// 	var yPosition = parseFloat(d3.select(this)
-					// 					.attr("y")) + 14;
-
-					// 	console.log("Mouseover event");
-
-					// 	gMap.append("text")
-					// 			.attr("id", "tooltip")
-					// 			.attr("x", xPosition)
-					// 			.attr("y", yPosition)
-					// 			.attr("text-anchor", "middle")
-					// 			.attr("font-family", "arial")
-					// 			.attr("fill", "black")
-					// 			.text(function(d){
-					// 				if (d.age==0){
-					// 					return "Age: 0-10";
-					// 				} else if (d.age==1){
-					// 					return "Age: 11-20";
-					// 				} else if (d.age==2){
-					// 					return "Age: 21-40";
-					// 				} else if (d.age==3){
-					// 					return "Age: 41-60";
-					// 				} else if (d.age==4){
-					// 					return "Age: 61-80";
-					// 				} else {return "Age: 81+";}
-					// 			});
-					// 	});
 
 				};
 
 
 
-				//------------------
-				// Bar Chart Section
-				//------------------
-				// Use of https://bl.ocks.org/d3noob/8952219 for bar chart design
-				// and https://stackoverflow.com/questions/21639305/
-				//d3js-take-data-from-an-array-instead-of-a-file
-				// and https://stackoverflow.com/questions/42736873/
-				//adding-label-text-on-barchart-d3js
+	//------------------
+	// Bar Chart Section
+	//------------------
+	// Use of https://bl.ocks.org/d3noob/8952219 for bar chart design
+	// and https://stackoverflow.com/questions/21639305/
+	//d3js-take-data-from-an-array-instead-of-a-file
+	// and https://stackoverflow.com/questions/42736873/
+	//adding-label-text-on-barchart-d3js
 				function drawBarChart(data){
 
 
@@ -549,94 +560,117 @@
 						.style('font-size', "15px")
 						.text("Deaths");
 
-					gBar.selectAll('.pumptext')
+					gBar.selectAll('.chrttext')
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "chrttext")
+						.attr("x", 70)
+						.attr("y", 60)
+						.style('font-family', 'Arial')
+						.style('font-size', "25px")
+						.text("Total Deaths by Gender and Age");	
+
+					gChart.selectAll('.lnetext')
+						.data(genderValues)
+						.enter().append("text")
+						.attr("class", "lnetext")
+						.attr("x", 10)
+						.attr("y", 90)
+						.style('font-family', 'Arial')
+						.style('font-size', "22px")
+						.text("Deaths per Day");											
+
+	//-------------
+	// Map legend
+	//-------------
+					gLegend.selectAll('.pumptext')
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "pumptext")
-						.attr("x", "15px")
+						.attr("x", legendSpaceStart)
 						.attr("y", (legendSep+5))
 						.style('font-family', 'Arial')
 						.style('font-size', "15px")
 						.text("Pumps");
-					gBar.selectAll('.pumpslegend')
+					gLegend.selectAll('.pumpslegend')
 						.data(genderValues)
 						.enter().append("circle")
 						.attr("class", "pumpslegend")
-						.attr("cx", "7px")
-						.attr('cy', legendSep)
+						.attr("cx", legendCircleStart)
+						.attr('cy', (legendSep))
 						.attr('r', "5px")
 						.style('fill', 'yellow');
 
-					gBar.selectAll('.femalestext')
+					gLegend.selectAll('.femalestext')
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "femalestext")
-						.attr("x", "15px")
-						.attr("y", ((legendSep)+20))
+						.attr("x", legendCircle +legendSpace)
+						.attr("y", (legendSep+5))
 						.style('font-family', 'Arial')
 						.style('font-size', "15px")
 						.text("Female");
-					gBar.selectAll('.femaleslegend')
+					gLegend.selectAll('.femaleslegend')
 						.data(genderValues)
 						.enter().append("circle")
 						.attr("class", "femaleslegend")
-						.attr("cx", "7px")
-						.attr('cy', (legendSep+15))
+						.attr("cx", legendCircle)
+						.attr('cy', (legendSep))
 						.attr('r', "5px")
 						.style('fill', '#7570b3');
 
-					gBar.selectAll('.malestext')
+					gLegend.selectAll('.malestext')
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "malestext")
-						.attr("x", "15px")
-						.attr("y", ((legendSep)+35))
+						.attr("x", 2*legendCircle +legendSpace)
+						.attr("y", (legendSep+5))
 						.style('font-family', 'Arial')
 						.style('font-size', "15px")
 						.text("Male");
-					gBar.selectAll('.maleslegend')
+					gLegend.selectAll('.maleslegend')
 						.data(genderValues)
 						.enter().append("circle")
 						.attr("class", "maleslegend")
-						.attr("cx", "7px")
-						.attr('cy', (legendSep+30))
+						.attr("cx", 2*legendCircle)
+						.attr('cy', (legendSep))
 						.attr('r', "5px")
 						.style('fill', '#d95f02');
 
-					gBar.selectAll('.whtext')
+					gLegend.selectAll('.whtext')
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "whtext")
-						.attr("x", "15px")
-						.attr("y", ((legendSep)+50))
+						.attr("x", 3*legendCircle +legendSpace)
+						.attr("y", (legendSep+5))
 						.style('font-family', 'Arial')
 						.style('font-size', "15px")
 						.text("Work House");
-					gBar.selectAll('.whlegend')
+					gLegend.selectAll('.whlegend')
 						.data(genderValues)
 						.enter().append("circle")
 						.attr("class", "whlegend")
-						.attr("cx", "7px")
-						.attr('cy', (legendSep+45))
+						.attr("cx", 3*legendCircle)
+						.attr('cy', (legendSep))
 						.attr('r', "5px")
 						.style('fill', '#adacac');
 
 
-					gBar.selectAll('.brtext')
+					gLegend.selectAll('.brtext')
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "brtext")
-						.attr("x", "15px")
-						.attr("y", ((legendSep)+65))
+						.attr("x", 4*legendCircle +legendSpace)
+						.attr("y", (legendSep+5))
 						.style('font-family', 'Arial')
 						.style('font-size', "15px")
 						.text("Brewery");
-					gBar.selectAll('.brlegend')
+					gLegend.selectAll('.brlegend')
 						.data(genderValues)
 						.enter().append("circle")
 						.attr("class", "whlegend")
-						.attr("cx", "7px")
-						.attr('cy', (legendSep+60))
+						.attr("cx", 4*legendCircle)
+						.attr('cy', (legendSep))
 						.attr('r', "5px")
 						.style('fill', '#363636');
 
@@ -648,6 +682,11 @@
 				drawBarChart(peopleCirc);
 
 			});
+
+	//------------
+	// Map objects
+	//------------
+
 					function drawMapObjects(){
 						gMap.append("rect")
 							.attr("id","mapobject")
@@ -709,15 +748,16 @@
 							.text("Brewer Street");							
 
 					};
+
 					drawMapObjects();
 					drawStreets(streets);
 
 				}});
 
-			//--------------------------
-			// Deaths per day line chart
-			//--------------------------
-			d3.csv('deathdays.csv', deathDaysConverter, function(data) 
+	//--------------------------
+	// Deaths per day line chart
+	//--------------------------
+			d3.csv('http://127.0.0.1:8887/deathdays.csv', deathDaysConverter, function(data) 
 			{
 				deathDays = data;
 				var maxValue = d3.max(deathDays, function(d) {
@@ -733,11 +773,11 @@
 
 				var xScale = d3.scale.ordinal()
 					.domain(deathDays.map(function(d) {return d.date;}))	
-					.rangeRoundBands([0, CHART_WIDTH]);			
+					.rangeRoundBands([0, DEATH_WIDTH]);			
 
 				var yScale = d3.scale.linear()
 								.domain([0, maxValue])
-								.range([CHART_HEIGHT,0]);	
+								.range([DEATH_HEIGHT,0]);	
 
 
 				var xAxis = d3.svg.axis()
@@ -756,7 +796,7 @@
 
 	    		gChart.append('g')
 	    			.attr('class', 'axis')
-	    			.attr('transform', 'translate(0,' + (CHART_HEIGHT+deathTrans) + ')')
+	    			.attr('transform', 'translate(0,' + (DEATH_HEIGHT+deathTrans) + ')')
 	    			.call(xAxis)
 	    			.selectAll('text')
 	    				.attr('y',0)
@@ -791,9 +831,9 @@
 					.attr('cy', function(d) { return yScale(d.deaths)})
 					.attr('id', function(d) { return 'dead_'+d.dCount; } );
 
-					//******************
-					// Interaction below
-					//******************
+		//******************
+		// Interaction below
+		//******************
 
 				gChart.selectAll('.visDeath')
 					.on('mouseover', function(d) 
@@ -871,13 +911,18 @@
 			//   d3.select('svg#map')
 			//     .call(zoom);}
 
-
+			function zoomed() {
+				gMap.style("stroke-width", 1.5 / d3.event.scale + "px");
+				gMap.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+			}
 
 			// Text button/link below
 			// https://www.w3.org/Style/Examples/007/center.en.html
 		</script>
 
-		<a href='documentation.html/' class='button'>LINK TO DOCUMENTATION</a>
+		<a href='http://127.0.0.1:8887/documentation.html/' class='button'>LINK TO DOCUMENTATION</a>
+		<p style="font-size: 100%;">Created by Brandon Downer, 2022<br>With data and requirements from K.Rheda</p>
+
 
 	</body>
 
