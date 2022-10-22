@@ -87,11 +87,12 @@
 		</svg>
 		</div>
 
-		<div text-align="center">
+		<div align="center">
 		<svg id="barchart" width="41%" height="35%" viewBox="0 0 700 550">
 
 		</svg>
 		<svg id="linechart" width="58%" height="35%" viewBox="0 0 700 550">
+
 
 		</svg>
 		</div>
@@ -276,7 +277,6 @@
 
 					pumpCirc = data;
 
-					console.log(pumpCirc);
 
 					function drawPumps(data){
 
@@ -568,10 +568,11 @@
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "lnetext")
-						.attr("x", 10)
+						.attr("x", 0)
 						.attr("y", 90)
 						.style('font-family', 'Arial')
 						.style('font-size', "22px")
+						.style('text-anchor','end')
 						.text("Deaths per Day");											
 
 	//-------------
