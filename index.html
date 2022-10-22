@@ -78,8 +78,7 @@
 		<div text-align="center">
 
 		<svg id="map" width="96%" height="48%" viewBox="0 0 500 500">
-			<!-- <text id='Maplabel' x='20' y='20'>London, Soho District</text> -->
-			<!--<g transform="translate(100,100)"></g>-->
+
 		</svg>
 		</div>
 		<div text-align="center">
@@ -89,10 +88,10 @@
 
 		<div text-align="center">
 		<svg id="barchart" width="41%" height="35%" viewBox="0 0 700 550">
-			<!-- <text id='barlabel' x='100' y='20'>Overall Death Distribution by Gender and Age</text> -->
+
 		</svg>
 		<svg id="linechart" width="58%" height="35%" viewBox="0 0 700 550">
-			<!-- <text id="LClabel" x="20" y="20">Interactive Deaths per Day</text> -->
+
 		</svg>
 		</div>
 
@@ -116,24 +115,20 @@
 			var CHART_WIDTH = width;
 			var CHART_HEIGHT = height;
 			var deathTrans = 100;
+			var deathLeft = -(width)/8;
 
 			var legendCircleStart = 400/9;
 			var legendSpaceStart = legendCircleStart+7;
 			var legendCircle = (400/5)+legendCircleStart;
 			var legendSpace = 7;
 
-			// var Bar_CWidth = 75;
 			var Bar_CWidth = 125;
-			// var Bar_CWidthAge = 220;			
-			// var Bar_CHeight = 250;
 			var Bar_CWidthAge = Bar_CWidth*3;			
 			var Bar_CHeight = height;
 			var barTransDown = 150;
 			var barTransRight= 110;
 			var ageBarTrans = 200;
 
-			// var DEATH_HEIGHT = 350;
-			// var DEATH_WIDTH = 600;
 			var DEATH_HEIGHT = height;
 			var DEATH_WIDTH = width*0.85;
 
@@ -221,8 +216,8 @@
 			var zoom = d3.behavior.zoom()
 						.translate([0,0])
 						.scale(1)
-						.scaleExtent([1,3])
-						.center([300,300])
+						.scaleExtent([1,2])
+						.center([1,1])
 						.on("zoom", zoomed);
 
 
@@ -231,15 +226,13 @@
 	//--------------------------
 	//https://stackoverflow.com/questions/59227481/add-new-row-dynamically-to-an-array-with-headers-created-from-a-csv-file
 	//^ for logging of error during loading.
-			d3.json('streets.json', function(error, data){
+			d3.json('http://127.0.0.1:8887/streets.json', function(error, data){
 				
 				if (error) {
 					console.log(error);
 				} else {
 
 					streets = data;
-					//console.log(streets[0][0].x);
-					//drawStreets(streets);
 
 					function drawStreets(d) {
 
@@ -261,6 +254,8 @@
 		//-----------
 		// https://coderwall.com/p/psogia/
 		//simplest-way-to-add-zoom-pan-on-d3-js
+		//https://bl.ocks.org/saifulazfar/dd5f14926bb3b1ef19a6f734c6891545
+		
     	// 	gMap.call(d3.behavior.zoom().on("zoom", function () {
 		// 		gMap.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
   						// }));
@@ -275,7 +270,7 @@
 	//-------------------------
 	//Pumps generator
 	//-------------------------
-				d3.csv('pumps.csv', pumpConverter, function (data){
+				d3.csv('http://127.0.0.1:8887/pumps.csv', pumpConverter, function (data){
 
 					pumpCirc = data;
 
@@ -291,8 +286,6 @@
 							.attr('cx', function(d){ return xStreetsScale(d.x); })
 							.attr('cy', function(d){ return yStreetsScale(d.y); })
 							.attr('fill', 'yellow')
-							// .attr('stroke-fill', 'black')
-							// .attr('stroke-width', '2px');
 
 					};
 
@@ -303,7 +296,7 @@
 	//---------------------------------
 	//People generator and map objects
 	//---------------------------------
-			d3.csv('deaths_age_sex.csv', peopleConverter, function(data) 
+			d3.csv('http://127.0.0.1:8887/deaths_age_sex.csv', peopleConverter, function(data) 
 			{
 				peopleCirc = data;
 
@@ -332,6 +325,7 @@
 						.on('mouseover', function(d) 
 						{	
 
+						if (d3.select(this).style('opacity')!= 0){
 
 						var xPosition = parseFloat(d3.select(this)
 										.attr("cx")) + 14;
@@ -339,7 +333,6 @@
 										.attr("cy")) - 15;
 						var ageTest = d.age;
 
-						//console.log(ageTest);
 
 						gMap.append("rect")
 							.attr("id","tooltip")
@@ -373,7 +366,7 @@
 									} else {return "Age: 81+";}
 								});
 
-
+							};
 
 
 						})
@@ -400,9 +393,6 @@
 
 					var maxGender = 0;
 					var maxAge = 0;
-					//var genderNames = ["Female", "Male"];
-
-					//var ageNames = ["0-10", "11-20", "21-40", "41-60", "61-80", "> 80"];
 			
 					var maleMax = d3.max(data,function(d){return d.male;});
 					var femaleMax = d3.max(data, function(d){return d.female;});
@@ -516,12 +506,14 @@
 						.attr("x", function(d,i){
 							return xBarScale(d.sex) ;})
 						.attr("y", function(d){return yBarScale(d.value);})
-						.attr("transform","translate("+(barTransRight+4)+"," +(barTransDown-2)+")")
-						.text(function(d){return d.value;})
+						.attr("transform","translate("+(barTransRight+6)+"," +(barTransDown-2)+")")
+						.text(function(d){return d3.format(',.1%')((parseInt(d.value)/571));})
 						.style('font-family', 'Arial')
-						.style('font-size', "15px")
+						.style('font-size', "18px")
 						.style("text-anchor", "left");
 
+
+					//https://observablehq.com/@d3/d3-format
 					gBar.selectAll(".agebartext")
 						.data(ageValues)
 						.enter().append("text")
@@ -530,10 +522,10 @@
 						.attr("x", function(d,i){
 							return xBarScale1(d.age) ;})
 						.attr("y", function(d){return yBarScale1(d.value);})
-						.attr("transform","translate("+(barTransRight+17+ageBarTrans)+"," +(barTransDown-2)+")")
-						.text(function(d){return d.value;})
+						.attr("transform","translate("+(barTransRight+28+ageBarTrans)+"," +(barTransDown-2)+")")
+						.text(function(d){return d3.format(',.1%')((parseInt(d.value)/571));})
 						.style('font-family', 'Arial')
-						.style('font-size', "15px")
+						.style('font-size', "18px")
 						.style("text-anchor", "middle");
 
 					gBar.selectAll('.sexaxistext')
@@ -545,7 +537,7 @@
 						.attr('transform', 'rotate(-90)')
 						.attr('text-anchor', 'end')
 						.style('font-family', 'Arial')
-						.style('font-size', "15px")
+						.style('font-size', "18px")
 						.text("Deaths");
 
 					gBar.selectAll('.ageaxistext')
@@ -557,7 +549,7 @@
 						.attr('transform', 'rotate(-90)')
 						.attr('text-anchor', 'end')
 						.style('font-family', 'Arial')
-						.style('font-size', "15px")
+						.style('font-size', "18px")
 						.text("Deaths");
 
 					gBar.selectAll('.chrttext')
@@ -678,9 +670,15 @@
 
 
 				drawPeople(peopleCirc);
-				//console.log('working?');
 				drawBarChart(peopleCirc);
 
+//*************
+//*************
+				//Why can't I feed the below in drawBarChart?
+				//console.log(peopleCirc[100]);
+				//var testpeople = peopleCirc[(1:100)];
+				//console.log(testperson)
+				// drawBarChart(testperson);
 			});
 
 	//------------
@@ -757,20 +755,17 @@
 	//--------------------------
 	// Deaths per day line chart
 	//--------------------------
-			d3.csv('deathdays.csv', deathDaysConverter, function(data) 
+			d3.csv('http://127.0.0.1:8887/deathdays.csv', deathDaysConverter, function(data) 
 			{
 				deathDays = data;
 				var maxValue = d3.max(deathDays, function(d) {
 					return d.deaths;
 				});
-				//console.log(maxValue);
 
 				//Determine the next number that divides evenly by 10 for y scale
 				maxValue1 = maxValue
 				for (y=0; (maxValue1+y)%10!=0; y++){maxValue = maxValue1+y+1;};
 				
-				//console.log(maxValue);
-
 				var xScale = d3.scale.ordinal()
 					.domain(deathDays.map(function(d) {return d.date;}))	
 					.rangeRoundBands([0, DEATH_WIDTH]);			
@@ -778,7 +773,6 @@
 				var yScale = d3.scale.linear()
 								.domain([0, maxValue])
 								.range([DEATH_HEIGHT,0]);	
-
 
 				var xAxis = d3.svg.axis()
 								.scale(xScale)
@@ -796,7 +790,7 @@
 
 	    		gChart.append('g')
 	    			.attr('class', 'axis')
-	    			.attr('transform', 'translate(0,' + (DEATH_HEIGHT+deathTrans) + ')')
+	    			.attr('transform', 'translate('+deathLeft+',' + (DEATH_HEIGHT+deathTrans) + ')')
 	    			.call(xAxis)
 	    			.selectAll('text')
 	    				.attr('y',0)
@@ -808,14 +802,14 @@
 
 	    		gChart.append('g')
 	    			.attr('class', 'axis')
-	    			.attr('transform','translate(0,'+deathTrans+')')
+	    			.attr('transform','translate('+deathLeft+','+deathTrans+')')
 	    			.call(yAxis);
 
 	    		gChart.append('path')
 	    			.style('fill', 'none')
 	    			.style('stroke', 'black')
 	    			.style('stroke-width', '5px')
-	    			.attr('transform','translate(0,'+deathTrans+')')
+	    			.attr('transform','translate('+deathLeft+','+deathTrans+')')
 	    			.attr('d', pathGenerator(deathDays));
 
 
@@ -825,7 +819,7 @@
 					.style('fill', 'black')
 					.style('stroke', 'black')
 					.attr('class', 'visDeath')
-					.attr('transform','translate(0,'+deathTrans+')')
+					.attr('transform','translate('+deathLeft+','+deathTrans+')')
 					.attr('r', '10px')
 					.attr('cx', function(d) { return xScale(d.date)})
 					.attr('cy', function(d) { return yScale(d.deaths)})
@@ -834,63 +828,38 @@
 		//******************
 		// Interaction below
 		//******************
-
+		//https://stackoverflow.com/questions/35829005/hiding-visible-elements-on-click-d3-js
 				gChart.selectAll('.visDeath')
 					.on('mouseover', function(d) 
 					{
+						d3.selectAll('.visDeath')
+							.style('fill','black')
+							.attr('r',"10px")
+
 						d3.selectAll("#dead_" + d.id)
 							.style('fill', 'red')
-							.attr('r', '12px')
+							.attr('r', '14px')
 
 
 						for (y=0; y<(d.id); y++){
 							d3.selectAll('#ppl_'+y)
-							//.attr('r', '7px')
-							
-							//console.log(y);
-
-
-							this.parentNode.appendChild(this);
 						};
+
 
 						for (y=(d.id); y<572; y++){
 							d3.selectAll('#ppl_'+y)
-							.style('opacity', 0);
-							
-							//console.log(y);
-						};
+							.style('visibility', 'hidden');
 
-						// move brushed circle so that it's on top
-						this.parentNode.appendChild(this);
-
-					})
-
-					.on('mouseout', function(d) {
-						d3.selectAll("#dead_" + d.id)
-							.style('fill', 'black')
-							.attr('r', '10px');
-
-						// d3.selectAll("#ppl_" + d.id)
-						// 	.style('fill', null)
-						// 	.attr('r', '2px');
+						};						
 
 						for (y=0; y<(d.id);y++){
-							d3.selectAll('#ppl_'+y)
-							//x.selectAll('#ppl_'+y)
-							.style('fill', function(d){if (d.gender==0){return'#d95f02';}else{return '#7570b3';}});
-							//.attr('r', '2px');	
-						};
+							d3.selectAll("#ppl_"+y)
+							.style('visibility', 'visible');
+							this.parentNode.appendChild(this);
+						}
 
-						for (y=(d.id); y<572; y++){
-							d3.selectAll('#ppl_'+y)
-							.style('opacity', 1);
-							
-							//console.log(y);
-						};
 
-				 	});
-
-				//return deathDays;
+					})
 
 			});
 
@@ -898,18 +867,6 @@
 			// Zoom
 			//---------
 			// https://www.d3indepth.com/zoom-and-pan/
-			
-			// let zoom = d3.zoom()
-			//   .on('zoom', handleZoom);
-
-			// function handleZoom(e) {
-			//   d3.select('svg#map')
-			//     .attr('transform', e.transform);
-			// }
-
-			// function initZoom() {
-			//   d3.select('svg#map')
-			//     .call(zoom);}
 
 			function zoomed() {
 				gMap.style("stroke-width", 1.5 / d3.event.scale + "px");
@@ -918,9 +875,10 @@
 
 			// Text button/link below
 			// https://www.w3.org/Style/Examples/007/center.en.html
+			// https://www.w3docs.com/snippets/html/how-to-create-an-html-button-that-acts-like-a-link.html
 		</script>
 
-		<a href='https://bdind.github.io/H517-Proj1-Downer/documentation.html' class='button'>LINK TO DOCUMENTATION</a>
+		<a href='http://127.0.0.1:8887/documentation.html/' class='button'>LINK TO DOCUMENTATION</a>
 		<p style="font-size: 100%;">Created by Brandon Downer, 2022<br>With data and requirements from K.Rheda</p>
 
 
