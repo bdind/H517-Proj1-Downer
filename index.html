@@ -71,17 +71,18 @@
 	</head>
 
 	<body>
-
+		<div align="center">
 		<p style="text-align: center;">Map of London 1854 Cholera Epidemic</p>
+	</div>
 		<!-- https://webdesign.tutsplus.com/tutorials/svg-viewport-and-viewbox-for-beginners--cms-30844 -->
 		<!-- https://stackoverflow.com/questions/8639383/how-do-i-center-an-svg-in-a-div -->
-		<div text-align="center">
+		<div align="center">
 
 		<svg id="map" width="96%" height="48%" viewBox="0 0 500 500">
 
 		</svg>
 		</div>
-		<div text-align="center">
+		<div align="center">
 		<svg id="legend" width="80%" height="5%" viewBox="0 0 400 65">
 		</svg>
 		</div>
@@ -117,7 +118,8 @@
 			var deathTrans = 100;
 			var deathLeft = -(width/10);
 
-			var legendCircleStart = 400/9;
+			// var legendCircleStart = 400/9;
+			var legendCircleStart = 1;
 			var legendSpaceStart = legendCircleStart+7;
 			var legendCircle = (400/5)+legendCircleStart;
 			var legendSpace = 7;
@@ -130,7 +132,7 @@
 			var ageBarTrans = 200;
 
 			var DEATH_HEIGHT = height;
-			var DEATH_WIDTH = width*0.85;
+			var DEATH_WIDTH = width*0.80;
 
 			var legendSep = 10;
 
@@ -633,7 +635,7 @@
 						.data(genderValues)
 						.enter().append("text")
 						.attr("class", "whtext")
-						.attr("x", 3*legendCircle +legendSpace)
+						.attr("x", 3*legendCircle +legendSpace -25)
 						.attr("y", (legendSep+5))
 						.style('font-family', 'Arial')
 						.style('font-size', "15px")
@@ -642,7 +644,7 @@
 						.data(genderValues)
 						.enter().append("circle")
 						.attr("class", "whlegend")
-						.attr("cx", 3*legendCircle)
+						.attr("cx", 3*legendCircle-25)
 						.attr('cy', (legendSep))
 						.attr('r', "5px")
 						.style('fill', '#adacac');
