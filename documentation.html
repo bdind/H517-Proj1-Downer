@@ -21,14 +21,130 @@
 			  margin-bottom: 1em;
 			  margin-left: 0;
 			  margin-right: 0;
-			  font-size: 105%;
-			  font-family: ariel;
+			  font-size: 20px;
+			  font-family: arial;
 			}	
+
+		ul {
+			font-family: arial;
+			font-size: 18px;
+		}
+
+/*https://www.w3schools.com/howto/howto_css_images_side_by_side.asp*/
+		.row {
+		  display: flex;
+		}
+
+		.column {
+		  flex: 33.33%;
+		  padding: 5px;
+		}
+
 	</style>
 	<body>
-				<a href='https://bdind.github.io/H517-Proj1-Downer/' class='button'>BACK TO VISUALIZATION</a>
-	<p>Outline of documentation
+
+
+<!-- https://www.w3docs.com/snippets/html/how-to-create-an-html-button-that-acts-like-a-link.html -->
+
+<!-- 				<a href='https://bdind.github.io/H517-Proj1-Downer/' class='button'>BACK TO VISUALIZATION</a> -->
+
+				<a href='index.html/' class='button'>BACK TO VISUALIZATION</a>
+	<div align="center">
+		<h1>Demonstration</h1>
+	</div>
+	<div align='center'>
+		<iframe width="560" height="315" src="https://www.youtube.com/embed/PML58Th-66w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+	</div>
+	<div align="center">
+				<br><br><br>
+		<h1>Documentation and Design Process</h1>
+	</div>
+	<div STYLE="margin: 30px 30px 10px 30px">
+<!-- 		https://www.tagindex.net/css/text/text_justify.html -->
+<!-- https://html-shark.com/HTML/TextMarginIndent.htm#:~:text=Margins%20on%20text%20is%20controlled,four%20margins%20in%20one%20take. -->
+<!-- https://www.w3schools.com/html/html_lists.asp -->
+
+	<p style='text-align:justify; text-justify:inter-ideograph;'>
+		To begin with the design of this visualization, I first wanted to explore the data provided to determine the complexity of the various sources. Utilizing the descriptions supplied by K. Reda helped to interpret this. It was determined that producing the map and generating the correct scaling would be the most difficult. As such, I decided the best course of action would be first to get a barebones version of the map up and running as a proof of concept.</p><br><br>
+<div align='center'>
+	<img src="FirstMap.jpg" alt='First Map' style="width:40%">
+</div>
+	<br><br>
+	<p style='text-align:justify; text-justify:inter-ideograph;'>
+		After the map was successfully generated, I took a step back and decided to start laying out the project as a whole. I split the design into two areas, the project requirements and the visual space.<br>
+		A list of the project requirements was generated from the information provided by K. Reda on the project1 page of our course website.<br><br><br>
+		Project Requirements</p>
+		<ul>
+			<li>Map
+				<ul>
+					<li>Well drawn</li>
+					<li>Plotted streets, pumps, location of deaths, prominent street names, brewery/work house location</li>
+					<li>Death locations with gender and age of the person</li>
+					<li>Ability to zoom in and out</li>
+					<li>Ability to cluster data and change the size of clusters</li>
+				</ul>
+			</li>
+			<li>Timeline graph of deaths per day
+				<ul>
+					<li>Interaction between map and timeline for displaying deaths</li>
+					<li>Ability to show data from a window of days</li>
+				</ul>
+			</li>
+			<li>Graph showing the distribution of deaths by sex and age overall</li>
+			<li>General
+				<ul>
+					<li>All should be stable and not move when interacted with</li>
+					<li>Should be checked with a color blindness simulation tool</li>
+					<li>Visualizations should update quickly</li>
+					<li>Documentation screen</li>
+					<li>Demonstration video</li>
+				</ul>
+			</li>
+		</ul>
+		<br>
+		<p style='text-align:justify; text-justify:inter-ideograph;'>
+		Visual Space </p>
+		<ul>
+			<li>Line chart of deaths per day</li>
+			<li>Map with deaths and other items plotted</li>
+			<li>Bar charts of death demographics</li>
+		</ul>
+		<br>
+		<p style='text-align:justify; text-justify:inter-ideograph;'>
+		The initial design was focused on having the death per day timeline chart expanded across the bottom of the webpage. Above this, the remaining area would be split in half and shared by the map and the bar charts.</p><br><br>
+
+<div align='center'>
+	<img src="Layout.jpg" alt='Layout Drawing'>
+</div><br><br>
+<p style='text-align:justify; text-justify:inter-ideograph;'>
+		Only placeholder colors were employed during development, with no additional thought placed on them at the time. The places in the code where the color was defined were noted so that after the functional pieces of the page were completed, they could be addressed as a whole instead of piecemeal. <br>
+		After achieving the basic layout described above, the iterative tweaking and functional upgrades began. This is where I started to add the additional features listed above to the bones of each chart/map. During this time, I grew increasingly unhappy with the original layout and began experimenting with alternative configurations. Ultimately I ended up with the structure seen on the main visualization page with the map top center and the two charts below. This made the map the page’s focus and aesthetically more pleasing. </p><br><br>
+<div align='center'>
+	<img src="FinalLayout.jpg" alt='Final Layout' style='width:75%'>
+</div>	<br><br>
+	<p style='text-align:justify; text-justify:inter-ideograph;'>
+		Toward the end of development, I addressed the color issue. I utilized the Chrome built-in “Emulate vision deficiencies” rendering option to view my page with multiple color blindnesses. It was immediately identified that the previously chosen colors were inadequate for many viewers. To address this, I utilized colorbrewer2.org to generate colorblind-safe color palette options. These colors were then used in the visualization, and the built-in emulator was used again. These new colors provided a suitable viewing experience for various vision deficiencies; protanopia, deuteranopia, and tritanopia posed no problem. However, I noted that the use of achromatopsia presented an issue. Achromatopsia presents as the absence of all color, and instead, everything is viewed in black and white. The only way to show differences would be with a pattern or change in grayscale brightness. In the future, if I were to build this again, I would try to keep this in mind to utilize patterns or other visual signs to provide an option for those with achromatopsia. This page does not fully address that deficiency, as the grayscale brightness difference between some objects does not allow for discrimination. Reducing the number/type of different objects displayed would also help the design.</p><br><br>
+<div align='center'class="row">
+  <div align='center'class="column">
+    <img src="GenderColor.jpg" alt="Gender Colors" style="width:60%">
+  </div>
+  <div align='center'class="column">
+    <img src="AgeColor.jpg" alt="Age Colors" style="width:60%">
+  </div>
+</div>
+	<br><br>
+	<p style='text-align:justify; text-justify:inter-ideograph;'>
+		With the visualization complete, I could use it to explore the data. Using the map, day filter for death, zoom function, and tooltips containing the deceased’s age, it is clear how the most vulnerable of the population seemed to be affected first. The extremely young and the very old comprised a large portion of the deaths. Also, we can see how the deaths appear to be clustered around one well in particular, as opposed to areas of high traffic and interaction, such as the Work House and Brewery. Utilizing this visualization, those of 1854 could identify the outbreak's potential cause more quickly.<br>
+
+		
+
+
+
 	</p>
+</div>
+<div>
+	<a href='index.html/' class='button'>BACK TO VISUALIZATION</a>
+</div>
 	</body>
 </head>
 </html>
